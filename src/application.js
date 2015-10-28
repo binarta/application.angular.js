@@ -1,5 +1,5 @@
 (function() {'use strict';
-    angular.module('application', [])
+    angular.module('application', ['rest.client', 'config'])
         .service('applicationDataService', ['restServiceHandler', 'config', ApplicationDataService]);
 
     function ApplicationDataService(rest, config) {
