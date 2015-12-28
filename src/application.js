@@ -21,6 +21,10 @@
         }
     });
 
+    ApplicationDataService.prototype.then = function(listener) {
+        return this.commonApplicationData.then(listener);
+    };
+
     ApplicationDataService.prototype.isTrial = function() {
         return this.commonApplicationData.then(function(data) {
             return data.trial !== undefined;
