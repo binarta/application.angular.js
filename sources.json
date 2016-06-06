@@ -1,0 +1,5 @@
+{
+  "default": {
+    "application":"bower_components/binarta.application.angular/src/application.js"
+  }
+}
