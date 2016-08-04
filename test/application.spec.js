@@ -1,157 +1,109 @@
-describe('application', function() {
-    var rest;
+angular.module('binarta-applicationjs-gateways-angular1', ['binarta-applicationjs-inmem-angular1'])
+    .provider('binartaApplicationGateway', ['inmemBinartaApplicationGatewayProvider', function (it) {
+        return it;
+    }]);
 
-    beforeEach(module('config'));
-    beforeEach(module('rest.client'));
+describe('application', function () {
+    var rest, binarta;
+
     beforeEach(module('application'));
 
-    beforeEach(inject(function(restServiceHandler, config) {
-        rest = restServiceHandler;
-        config.baseUri = 'base-uri/';
-        config.namespace = 'app';
+    beforeEach(inject(function (_binarta_) {
+        binarta = _binarta_;
     }));
 
-    describe('applicationDataService', function() {
-        var service, commonApplicationDataDeferred;
+    describe('applicationDataService', function () {
+        var service, $rootScope;
 
-        beforeEach(inject(function(_applicationDataService_, $q, $rootScope) {
+        beforeEach(inject(function (_applicationDataService_, _$rootScope_, binartaGatewaysAreInitialised) {
             service = _applicationDataService_;
-            commonApplicationDataDeferred = $q.defer();
-            var d = commonApplicationDataDeferred.resolve;
-            commonApplicationDataDeferred.resolve = function(args) {
-                d(args);
-                $rootScope.$digest();
-            };
-            rest.and.returnValue(commonApplicationDataDeferred.promise);
+            $rootScope = _$rootScope_;
+            binartaGatewaysAreInitialised.resolve();
+            $rootScope.$digest();
         }));
 
-        describe('then', function() {
-            var config;
-
-            beforeEach(function() {
-                service.then(function(it) {
-                    config = it;
-                });
-            });
-
-            it('common data is retrieved', inject(function(config) {
-                expect(rest.calls.argsFor(0)[0].params).toEqual({
-                    method:'GET',
-                    url:config.baseUri + 'api/application/' + config.namespace + '/data/common'
-                })
-            }));
-
-            it('subsequent calls do not perform additional rest calls', function() {
-                service.then(function() {});
-                expect(rest.calls.count()).toEqual(1);
-            });
-
-            it('when app is trial', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data: {k:'v'}});
-                expect(config).toEqual({k:'v'});
-            }));
+        it('the application profile has been loaded', function () {
+            expect(binarta.application.profile()).toBeDefined();
+            expect(binarta.application.profile()).not.toEqual({});
         });
 
-        describe('isTrial', function() {
+        it('then returns a promise which provides the application profile', function () {
+            var config;
+            service.then(function (it) {
+                config = it;
+            });
+            $rootScope.$digest();
+            expect(config).toEqual(binarta.application.profile());
+        });
+
+        describe('isTrial', function () {
             var isTrial;
 
-            beforeEach(function() {
-                service.isTrial().then(function(yes) {
+            beforeEach(function () {
+                service.isTrial().then(function (yes) {
                     isTrial = yes;
                 });
             });
 
-            it('common data is retrieved', inject(function(config) {
-                expect(rest.calls.argsFor(0)[0].params).toEqual({
-                    method:'GET',
-                    url:config.baseUri + 'api/application/' + config.namespace + '/data/common'
-                })
-            }));
-
-            it('subsequent calls do not perform additional rest calls', function() {
-                service.isTrial();
-                expect(rest.calls.count()).toEqual(1);
+            it('when app is trial', function () {
+                binarta.application.profile().trial = true;
+                $rootScope.$digest();
+                expect(isTrial).toBeTruthy();
             });
 
-            it('when app is trial', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data: {trial:{}}});
-                expect(isTrial).toBeTruthy();
-            }));
-
-            it('when app is not a trial', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data:{}});
+            it('when app is not a trial', function () {
+                $rootScope.$digest();
                 expect(isTrial).toBeFalsy();
-            }));
+            });
         });
 
-        describe('isExpired', function() {
+        describe('isExpired', function () {
             var isExpired;
 
-            beforeEach(function() {
-                service.isExpired().then(function(yes) {
+            beforeEach(function () {
+                service.isExpired().then(function (yes) {
                     isExpired = yes;
                 })
             });
 
-            it('common data is retrieved', inject(function(config) {
-                expect(rest.calls.argsFor(0)[0].params).toEqual({
-                    method:'GET',
-                    url:config.baseUri + 'api/application/' + config.namespace + '/data/common'
-                })
-            }));
-
-            it('subsequent calls do not perform additional rest calls', function() {
-                service.isTrial();
-                expect(rest.calls.count()).toEqual(1);
+            it('when app is not a trial', function () {
+                $rootScope.$digest();
+                expect(isExpired).toBeFalsy();
             });
 
-            it('when app is not a trial', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data: {}});
+            it('when app is a trial and not expired', function () {
+                binarta.application.profile().trial = {expired: false};
+                $rootScope.$digest();
                 expect(isExpired).toBeFalsy();
-            }));
+            });
 
-            it('when app is a trial and not expired', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data:{trial:{expired:false}}});
-                expect(isExpired).toBeFalsy();
-            }));
-
-            it('when app is a trial and expired', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data:{trial:{expired:true}}});
+            it('when app is a trial and expired', function () {
+                binarta.application.profile().trial = {expired: true};
+                $rootScope.$digest();
                 expect(isExpired).toBeTruthy();
-            }));
+            });
         });
 
-        describe('getExpirationDate', function() {
+        describe('getExpirationDate', function () {
             var expirationDate;
 
-            beforeEach(function() {
-                service.getExpirationDate().then(function(date) {
+            beforeEach(function () {
+                service.getExpirationDate().then(function (date) {
                     expirationDate = date;
                 });
             });
 
-            it('common data is retrieved', inject(function(config) {
-                expect(rest.calls.argsFor(0)[0].params).toEqual({
-                    method:'GET',
-                    url:config.baseUri + 'api/application/' + config.namespace + '/data/common'
-                })
-            }));
-
-            it('subsequent calls do not perform additional rest calls', function() {
-                service.isTrial();
-                expect(rest.calls.count()).toEqual(1);
+            it('when app is not a trial', function () {
+                $rootScope.$digest();
+                expect(expirationDate).toBeFalsy();
             });
 
-            it('when app is not a trial', inject(function($rootScope) {
-                commonApplicationDataDeferred.resolve({data: {}});
-                expect(expirationDate).toBeFalsy();
-            }));
-
-            it('when app is a trial', inject(function($rootScope) {
+            it('when app is a trial', function () {
                 var now = moment();
-                commonApplicationDataDeferred.resolve({data:{trial:{expirationDate:now.toISOString()}}});
+                binarta.application.profile().trial = {expirationDate: now.toISOString()};
+                $rootScope.$digest();
                 expect(expirationDate.toObject()).toEqual(now.toObject());
-            }));
+            });
         });
     });
 });
