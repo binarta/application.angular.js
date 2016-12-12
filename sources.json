@@ -1,7 +1,5 @@
 {
   "default": {
-    "binartajs": "bower_components/binartajs/src/binarta.js",
-    "binarta-applicationjs": "bower_components/binartajs/src/application.js",
     "application":"bower_components/binarta.application.angular/src/application.js"
   }
 }
