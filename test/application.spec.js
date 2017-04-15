@@ -4,30 +4,37 @@ angular.module('binarta-applicationjs-gateways-angular1', ['binarta-applicationj
     }]);
 
 describe('application', function () {
-    var rest, binarta;
+    var binarta, applicationGateway;
 
     beforeEach(module('application'));
 
-    beforeEach(inject(function (_binarta_) {
+    beforeEach(inject(function (_binarta_, binartaApplicationGateway) {
         binarta = _binarta_;
+        applicationGateway = binartaApplicationGateway;
     }));
 
     describe('applicationDataService', function () {
         var service, $rootScope;
 
         beforeEach(inject(function (_applicationDataService_, _$rootScope_, binartaGatewaysAreInitialised) {
+            applicationGateway.clear();
             service = _applicationDataService_;
             $rootScope = _$rootScope_;
-            binartaGatewaysAreInitialised.resolve();
-            $rootScope.$digest();
         }));
 
+        function triggerBinartaSchedule() {
+            binarta.application.refresh();
+            binarta.application.adhesiveReading.read('-');
+        }
+
         it('the application profile has been loaded', function () {
+            triggerBinartaSchedule();
             expect(binarta.application.profile()).toBeDefined();
             expect(binarta.application.profile()).not.toEqual({});
         });
 
         it('then returns a promise which provides the application profile', function () {
+            triggerBinartaSchedule();
             var config;
             service.then(function (it) {
                 config = it;
@@ -46,12 +53,14 @@ describe('application', function () {
             });
 
             it('when app is trial', function () {
-                binarta.application.profile().trial = true;
+                applicationGateway.updateApplicationProfile({trial: true});
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(isTrial).toBeTruthy();
             });
 
             it('when app is not a trial', function () {
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(isTrial).toBeFalsy();
             });
@@ -67,18 +76,21 @@ describe('application', function () {
             });
 
             it('when app is not a trial', function () {
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(isExpired).toBeFalsy();
             });
 
             it('when app is a trial and not expired', function () {
-                binarta.application.profile().trial = {expired: false};
+                applicationGateway.updateApplicationProfile({trial: {expired: false}});
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(isExpired).toBeFalsy();
             });
 
             it('when app is a trial and expired', function () {
-                binarta.application.profile().trial = {expired: true};
+                applicationGateway.updateApplicationProfile({trial: {expired: true}});
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(isExpired).toBeTruthy();
             });
@@ -94,13 +106,15 @@ describe('application', function () {
             });
 
             it('when app is not a trial', function () {
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(expirationDate).toBeFalsy();
             });
 
             it('when app is a trial', function () {
                 var now = moment();
-                binarta.application.profile().trial = {expirationDate: now.toISOString()};
+                applicationGateway.updateApplicationProfile({trial: {expirationDate: now.toISOString()}});
+                triggerBinartaSchedule();
                 $rootScope.$digest();
                 expect(expirationDate.toObject()).toEqual(now.toObject());
             });

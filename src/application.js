@@ -1,11 +1,12 @@
 (function() {'use strict';
     angular.module('application', ['binarta-applicationjs-angular1'])
-        .service('applicationDataService', ['$q', '$log', 'binarta', 'binartaApplicationIsInitialised', ApplicationDataService]);
+        .service('applicationDataService', ['$q', '$log', 'binarta', ApplicationDataService]);
 
-    function ApplicationDataService($q, $log, binarta, binartaApplicationIsInitialised) {
+    function ApplicationDataService($q, $log, binarta) {
         var d = $q.defer();
         this.commonApplicationData = d.promise;
-        binartaApplicationIsInitialised.then(function() {
+
+        binarta.schedule(function () {
             d.resolve(binarta.application.profile());
         });
 
