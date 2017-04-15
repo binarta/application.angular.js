@@ -13,7 +13,7 @@ module.exports = function(config) {
             {pattern:'../bower_components/binartajs-angular1/src/binarta-angular.js'},
             {pattern:'../bower_components/binartajs-angular1/src/binarta-application-angular.js'},
             {pattern:'../bower_components/binartajs-angular1/src/binarta-application-inmem-angular.js'},
-            {pattern:'../bower_components/binarta.web.storage.angular/src/web.storage.js'},
+            {pattern:'../bower_components/thk-web-storage-mock/src/web.storage.mock.js'},
             {pattern:'../src/**/*.js'},
             {pattern:'../test/**/*.js'}
         ],
